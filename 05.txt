@@ -1,0 +1,221 @@
+#include <iostream>
+#include <string>
+#include <stack>
+using namespace std;
+
+struct TreeNode {
+    string keyword;
+    string meaning;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(const string& key, const string& value)
+        : keyword(key), meaning(value), left(nullptr), right(nullptr) {}
+};
+
+class DictionaryBST {
+private:
+    TreeNode* root;
+
+    TreeNode* insert(TreeNode* node, const string& key, const string& value) {
+        if (node == nullptr) {
+            return new TreeNode(key, value);
+        }
+
+        if (key < node->keyword) {
+            node->left = insert(node->left, key, value);
+        } else if (key > node->keyword) {
+            node->right = insert(node->right, key, value);
+        } else {
+            // Key already exists, update the value
+            node->meaning = value;
+        }
+
+        return node;
+    }
+
+    TreeNode* findMin(TreeNode* node) {
+        while (node->left != nullptr) {
+            node = node->left;
+        }
+        return node;
+    }
+
+    TreeNode* remove(TreeNode* node, const string& key) {
+        if (node == nullptr) {
+            return nullptr;
+        }
+
+        if (key < node->keyword) {
+            node->left = remove(node->left, key);
+        } else if (key > node->keyword) {
+            node->right = remove(node->right, key);
+        } else {
+            // Found the node to be deleted
+            if (node->left == nullptr && node->right == nullptr) {
+                delete node;
+                return nullptr;
+            } else if (node->left == nullptr) {
+                TreeNode* temp = node->right;
+                delete node;
+                return temp;
+            } else if (node->right == nullptr) {
+                TreeNode* temp = node->left;
+                delete node;
+                return temp;
+            } else {
+                TreeNode* successor = findMin(node->right);
+                node->keyword = successor->keyword;
+                node->meaning = successor->meaning;
+                node->right = remove(node->right, successor->keyword);
+            }
+        }
+
+        return node;
+    }
+
+    void postorderTraversal(TreeNode* node) {
+        if (node == nullptr) {
+            return;
+        }
+
+        postorderTraversal(node->left);
+        postorderTraversal(node->right);
+        cout << node->keyword << ": " << node->meaning << endl;
+    }
+
+    void preorderTraversal(TreeNode* node) {
+        if (node == nullptr) {
+            return;
+        }
+
+        cout << node->keyword << ": " << node->meaning << endl;
+        preorderTraversal(node->left);
+        preorderTraversal(node->right);
+    }
+
+    void inorderTraversal(TreeNode* node, bool ascending) {
+        if (node == nullptr) {
+            return;
+        }
+
+        if (ascending) {
+            inorderTraversal(node->left, ascending);
+            cout << node->keyword << ": " << node->meaning << endl;
+            inorderTraversal(node->right, ascending);
+        } else {
+            inorderTraversal(node->right, ascending);
+            cout << node->keyword << ": " << node->meaning << endl;
+            inorderTraversal(node->left, ascending);
+        }
+    }
+
+    int findMaxComparisons(TreeNode* node, const string& key, int comparisons) {
+        if (node == nullptr) {
+            return comparisons;
+        }
+
+        if (key < node->keyword) {
+            comparisons++;
+            return findMaxComparisons(node->left, key, comparisons);
+        } else if (key > node->keyword) {
+            comparisons++;
+            return findMaxComparisons(node->right, key, comparisons);
+        } else {
+            comparisons++; // Counting the final comparison for finding the key
+            return comparisons;
+        }
+    }
+
+public:
+    DictionaryBST() : root(nullptr) {}
+
+    void addEntry(const string& key, const string& value) {
+        root = insert(root, key, value);
+    }
+
+    void deleteEntry(const string& key) {
+        root = remove(root, key);
+    }
+
+    void postorder() {
+        postorderTraversal(root);
+    }
+
+    void preorder() {
+        preorderTraversal(root);
+    }
+
+    void inorder(bool ascending) {
+        inorderTraversal(root, ascending);
+    }
+
+    int maxComparisons(const string& key) {
+        return findMaxComparisons(root, key, 0);
+    }
+};
+
+int main() {
+    DictionaryBST dictionary;
+    int choice;
+    string key, value;
+
+    do {
+        cout << "\nDictionary Management\n";
+        cout << "1. Add Entry\n";
+        cout << "2. Delete Entry\n";
+        cout << "3. Display Entries (Inorder, Ascending)\n";
+        cout << "4. Display Entries (Inorder, Descending)\n";
+        cout << "5. Display Entries (Preorder)\n";
+        cout << "6. Display Entries (Postorder)\n";
+        cout << "7. Max Comparisons for Key\n";
+        cout << "8. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter keyword: ";
+                cin >> key;
+                cout << "Enter meaning: ";
+                cin.ignore();
+                getline(cin, value);
+                dictionary.addEntry(key, value);
+                break;
+            case 2:
+                cout << "Enter keyword to delete: ";
+                cin >> key;
+                dictionary.deleteEntry(key);
+                break;
+            case 3:
+                cout << "\nDictionary contents (Inorder traversal, Ascending):" << endl;
+                dictionary.inorder(true);
+                break;
+            case 4:
+                cout << "\nDictionary contents (Inorder traversal, Descending):" << endl;
+                dictionary.inorder(false);
+                break;
+            case 5:
+                cout << "\nDictionary contents (Preorder traversal):" << endl;
+                dictionary.preorder();
+                break;
+            case 6:
+                cout << "\nDictionary contents (Postorder traversal):" << endl;
+                dictionary.postorder();
+                break;
+            case 7:
+                cout << "Enter keyword to find max comparisons: ";
+                cin >> key;
+                cout << "Max comparisons for finding '" << key << "': " << dictionary.maxComparisons(key) << endl;
+                break;
+            case 8:
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+    } while (choice != 8);
+
+    return 0;
+}
