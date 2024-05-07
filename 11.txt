@@ -1,0 +1,125 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+struct Student {
+    int rollNo;
+    string name;
+    char division;
+    string address;
+};
+
+void addStudent() {
+    ofstream file("students.dat", ios::app);
+    Student student;
+
+    cout << "Enter roll number: ";
+    cin >> student.rollNo;
+
+    cout << "Enter name: ";
+    cin.ignore(); // Consume newline from previous input
+    getline(cin, student.name);
+
+    cout << "Enter division: ";
+    cin >> student.division;
+
+    cout << "Enter address: ";
+    cin.ignore(); // Consume newline from previous input
+    getline(cin, student.address);
+
+    file.write(reinterpret_cast<char*>(&student), sizeof(Student));
+    file.close();
+
+    cout << "Student added successfully." << endl;
+}
+
+void deleteStudent() {
+    ifstream file("students.dat");
+    ofstream tempFile("temp.dat");
+    Student student;
+
+    int rollNoToDelete;
+    cout << "Enter roll number to delete: ";
+    cin >> rollNoToDelete;
+
+    bool found = false;
+    while (file.read(reinterpret_cast<char*>(&student), sizeof(Student))) {
+        if (student.rollNo != rollNoToDelete) {
+            tempFile.write(reinterpret_cast<char*>(&student), sizeof(Student));
+        } else {
+            found = true;
+        }
+    }
+
+    file.close();
+    tempFile.close();
+    remove("students.dat");
+    rename("temp.dat", "students.dat");
+
+    if (found) {
+        cout << "Student deleted successfully." << endl;
+    } else {
+        cout << "Student not found." << endl;
+    }
+}
+
+void displayStudent() {
+    ifstream file("students.dat");
+    Student student;
+
+    int rollNoToDisplay;
+    cout << "Enter roll number to display: ";
+    cin >> rollNoToDisplay;
+
+    bool found = false;
+    while (file.read(reinterpret_cast<char*>(&student), sizeof(Student))) {
+        if (student.rollNo == rollNoToDisplay) {
+            cout << "Roll Number: " << student.rollNo << endl;
+            cout << "Name: " << student.name << endl;
+            cout << "Division: " << student.division << endl;
+            cout << "Address: " << student.address << endl;
+            found = true;
+            break;
+        }
+    }
+
+    file.close();
+
+    if (!found) {
+        cout << "Student not found." << endl;
+    }
+}
+
+int main() {
+    int choice;
+    do {
+        cout << "\nStudent Information System" << endl;
+        cout << "1. Add Student" << endl;
+        cout << "2. Delete Student" << endl;
+        cout << "3. Display Student Information" << endl;
+        cout << "4. Exit" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                addStudent();
+                break;
+            case 2:
+                deleteStudent();
+                break;
+            case 3:
+                displayStudent();
+                break;
+            case 4:
+                cout << "Exiting..." << endl;
+                break;
+            default:
+                cout << "Invalid choice." << endl;
+        }
+    } while (choice != 4);
+
+    return 0;
+}
