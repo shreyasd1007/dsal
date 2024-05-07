@@ -1,0 +1,66 @@
+import array as hashtable
+
+size = 10
+hashtable = hashtable.array('i', [-1] * size)
+
+def initial():
+    print(hashtable)
+
+def inserthash(value):
+    key = value % size
+    if hashtable[key] == -1:
+        hashtable[key] = value
+        print(value, "inserted at arr", key)
+    else:
+        print("collision : arr", key, "has element", hashtable[key], "already")
+        print("unable to insert", value, "into hashtable")
+        i = 0
+        count = 0
+        while i < size:
+            if hashtable[i] != -1:
+                count += 1
+            i += 1
+        if count == size:
+            print("Hash Table Is Full Hence", value, "Can not Be Inserted")
+            print(hashtable)
+        else:
+            i = key
+            for i in range(key, size):
+                key1 = (i+1) % size  #i+1=key+i**2
+                if hashtable[key1] == -1:
+                    hashtable[key1] = value
+                    print(value, "inserted at arr", key1)
+                    break
+
+def search(value):
+    key = value % size
+    if hashtable[key] == value:
+        print(value, "Found at", key, "th Index location")
+    else:
+        print(value, "Not Found at", key, "th Index location")
+
+def delhash(value):
+    key = value % size
+    if hashtable[key] == value:
+        print(value, "Successfully deleted from hash table")
+        hashtable[key] = -1
+    else:
+        print(value, "Not Found at", key, "th Index location")
+
+initial()
+inserthash(7)
+inserthash(10)
+inserthash(40)
+inserthash(21)
+inserthash(28)
+inserthash(32)
+inserthash(5)
+inserthash(33)
+inserthash(25)
+inserthash(35)
+print(hashtable)
+search(13)
+search(25)
+delhash(13)
+for i in range(0, 10):
+    print("Index[", i, "]=", hashtable[i])
