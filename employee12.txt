@@ -1,0 +1,142 @@
+#include<iostream>
+#include<fstream>
+#include<cstring>
+using namespace std;
+
+struct Employee {
+    int employeeID;
+    char name[50];
+    char designation[50];
+    double salary;
+};
+
+void addEmployee(fstream &file);
+void deleteEmployee(fstream &file);
+void displayEmployee(fstream &file);
+
+int main() {
+    fstream file;
+    file.open("employee_data.dat", ios::in | ios::out | ios::binary | ios::trunc); // Use ios::trunc to truncate existing data
+    if (!file) {
+        cerr << "Error opening file!\n";
+        return 1;
+    }
+
+    int choice;
+    do {
+        cout << "\nEmployee Management System\n";
+        cout << "1. Add Employee\n";
+        cout << "2. Delete Employee\n";
+        cout << "3. Display Employee\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1:
+                addEmployee(file);
+                break;
+            case 2:
+                deleteEmployee(file);
+                break;
+            case 3:
+                displayEmployee(file);
+                break;
+            case 4:
+                cout << "Exiting program...\n";
+                break;
+            default:
+                cout << "Invalid choice!\n";
+        }
+    } while (choice != 4);
+
+    file.close();
+    return 0;
+}
+
+void addEmployee(fstream &file) {
+    Employee emp;
+    cout << "Enter employee details:\n";
+    cout << "Employee ID: ";
+    cin >> emp.employeeID;
+
+    // Check if employee already exists
+    file.seekg(0);
+    while (file.read((char *)&emp, sizeof(emp))) {
+        if (emp.employeeID == emp.employeeID) {
+            cout << "Employee with this ID already exists!\n";
+            return;
+        }
+    }
+
+    cin.ignore(); // Ignore newline from previous input
+    cout << "Name: ";
+    cin.getline(emp.name, 50);
+    cout << "Designation: ";
+    cin.getline(emp.designation, 50);
+    cout << "Salary: ";
+    cin >> emp.salary;
+
+    file.clear(); // Clear any error flags
+    file.write((char *)&emp, sizeof(emp));
+    cout << "Employee added successfully!\n";
+}
+
+void deleteEmployee(fstream &file) {
+    Employee emp;
+    int idToDelete;
+    cout << "Enter employee ID to delete: ";
+    cin >> idToDelete;
+
+    fstream tempFile;
+    tempFile.open("temp.dat", ios::out | ios::binary);
+    if (!tempFile) {
+        cerr << "Error creating temp file!\n";
+        return;
+    }
+
+    file.seekg(0);
+    while (file.read((char *)&emp, sizeof(emp))) {
+        if (emp.employeeID != idToDelete) {
+            tempFile.write((char *)&emp, sizeof(emp));
+        }
+    }
+
+    file.close();
+    tempFile.close();
+
+    if (remove("employee_data.dat") != 0) {
+        cerr << "Error deleting file!\n";
+        return;
+    }
+    if (rename("temp.dat", "employee_data.dat") != 0) {
+        cerr << "Error renaming file!\n";
+        return;
+    }
+
+    cout << "Employee deleted successfully!\n";
+}
+
+void displayEmployee(fstream &file) {
+    Employee emp;
+    int idToDisplay;
+    cout << "Enter employee ID to display: ";
+    cin >> idToDisplay;
+
+    bool found = false;
+    file.seekg(0);
+    while (file.read((char *)&emp, sizeof(emp))) {
+        if (emp.employeeID == idToDisplay) {
+            cout << "Employee details:\n";
+            cout << "Employee ID: " << emp.employeeID << endl;
+            cout << "Name: " << emp.name << endl;
+            cout << "Designation: " << emp.designation << endl;
+            cout << "Salary: " << emp.salary << endl;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Employee not found!\n";
+    }
+}
